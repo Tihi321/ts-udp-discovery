@@ -18,7 +18,7 @@ const service = {
 const getTSUDPDiscovery = (port: number = service.port, interval: number = service.annInterval) =>
   new TSUDPDiscovery({ port, timeOutIntervalTime: interval });
 
-test("should send a single initial event and then a time out", async t => {
+test("should send a single initial event and then it should tiemout", async t => {
   const tsDiscovery = getTSUDPDiscovery();
 
   await new Promise(resolve => {
@@ -40,7 +40,7 @@ test("should send a single initial event and then a time out", async t => {
   t.plan(2);
 });
 
-test("should remove the service inteval from service", async t => {
+test("should pause the service and remove interval for that service from services object", async t => {
   const tsDiscovery = getTSUDPDiscovery();
 
   await new Promise(resolve => {
