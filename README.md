@@ -1,6 +1,6 @@
 ts-udp-discovery
 =============
-This module provides discovery services using UDP multicast. ts-udp-discovery
+This is updated typescript version of udp-discovery. Module provides discovery services using UDP multicast. ts-udp-discovery
 implements the zero-configuration UDP multicast discovery and works only between
 nodes on the same subnet as typically, broadcast packets don't route.
 
@@ -13,58 +13,45 @@ nodes on the same subnet as typically, broadcast packets don't route.
 ## Application sending advertisements
 
 ```JavaScript
-var Discovery = require('udp-discovery').Discovery;
-var discover = new Discovery();
-
-var name = 'test';
-var interval = 500;
-var available = true;
-
-var serv = {
+import { TSUDPDiscovery } from "ts-udp-discovery";
+const service = {
   port: 80,
-  proto: 'tcp',
-  addrFamily: 'IPv4',
-  bonus: {
-    name: 'Edmond',
+  proto: "tcp",
+  annInterval: 1000,
+  addrFamily: "IPv4",
+  data: {
+    name: "Edmond",
     day: 2233,
-    week: [ 'monday', 'tuesday', 'wednesday', 'thursday', 'friday' ]
-  }
+    week: ["monday", "tuesday", "wednesday", "thursday", "friday"],
+  },
 };
 
-discover.announce(name, serv, interval, available);
+const discovery = new TSUDPDiscovery({ port, timeOutIntervalTime: interval });
 
-discover.on('MessageBus', function(event, data) {
-  console.log('event:',event);
-  console.log('data:',data);
+discovery.announce(name, serv, interval, available);
+
+discovery.on('MessageBus', function(event, data) {
+  ...
 });
 ```
 
 ## Application receiving advertisements
 
 ```JavaScript
-var Discovery = require('udp-discovery').Discovery;
-var discover = new Discovery();
 
-discover.on('available', function(name, data, reason) {
-  console.log('available ',name);
-  console.log('data',data);
-  console.log('reason',reason);
+discovery.on('available', function(name, data, reason) {
   var obj = {a: 1, b: '2', c: true, d: {e: 333}};
-  discover.sendEvent('Hello', obj);
-
-  console.log(name,':','available:',reason);
-  console.log(data);
+  discovery.sendEvent('Hello', obj);
 });
 
 discover.on('unavailable', function(name, data, reason) {
-  console.log(name,':','unavailable:',reason);
-  console.log(data);
+  ...
 });
 ```
 
 # Discovery constructor
 
-## new Discovery([options])
+## new Discovery({options})
 
 Invokes the constructor to create an instance of Discovery to receive discovery
 events.  The config options object is optional, but if included, the following
@@ -72,9 +59,11 @@ options are available:
 
 * **Number** `port` - The port to listen upon for service announcements. Default:
   44201.
-* **String** `bindAddr` - The address to bind to. Default: listens to all
+* **String** `timeOutIntervalTime` - duration of time between timeout checks in ms. Default 1000.
+
+* **String** `bindAddress` - The address to bind to. Default: listens to all
   interfaces.
-* **String** `dgramType` - Either 'udp4' or 'udp6'. Default: 'udp4'.
+* **String** `type` - Either 'udp4' or 'udp6'. Default: 'udp4'.
 
 # Discovery methods
 
