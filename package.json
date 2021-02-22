@@ -2,7 +2,7 @@
   "name": "ts-udp-discovery",
   "version": "2.0.2",
   "description": "Provides zero-config discovery service using broadcast UDP.",
-  "main": "index.js",
+  "main": "lib/index.js",
   "scripts": {
     "test": "ava --tap | tap-xunit > ./test-reports/ava.xml",
     "build": "tsc -p tsconfig.json",
@@ -13,6 +13,10 @@
     "type": "git",
     "url": "git://github.com/Tihi321/ts-udp-discovery.git"
   },
+  "bugs": {
+    "url": "https://github.com/Tihi321/ts-udp-discovery/issues"
+  },
+  "homepage": "https://github.com/Tihi321/ts-udp-discovery#readme",
   "keywords": [
     "discovery",
     "distributed",
