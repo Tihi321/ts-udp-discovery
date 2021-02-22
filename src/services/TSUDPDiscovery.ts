@@ -12,9 +12,9 @@ import {
   TUDPServiceDiscoveryOptions,
 } from "../types/services";
 import { ITSUDPDiscovery } from "../types/ts-discovery";
-import { isLibrary } from "../utils/is";
+import { isFunction, nonEmptyArray, nonEmptyObj, nonEmptyStr } from "../utils/is";
 import { Logger } from "../utils/logger";
-import { lockNameProperty, objToJson } from "../utils/objects";
+import { copyObj, jsonParse, jsonStringify, lockNameProperty } from "../utils/objects";
 import { createServiceObject } from "../utils/services";
 
 /**
@@ -62,7 +62,7 @@ export class TSUDPDiscovery implements ITSUDPDiscovery {
 
     this.socket.on(ESocketEvents.Message, (message, rinfo) => {
       if (message) {
-        const obj = <TAnnouncementObject>objToJson.jsonParse(message.toString());
+        const obj = <TAnnouncementObject>jsonParse(message.toString());
 
         if (!obj) {
           Logger(`[UDP on message] Error: JSON parse failed on ${message.toString()}`);
@@ -105,7 +105,7 @@ export class TSUDPDiscovery implements ITSUDPDiscovery {
    */
   handleAnnouncement(announcement: TAnnouncementObject, rinfo: TRsInfoObject): boolean {
     // ensure the ann is an object that is not empty
-    if (!isLibrary.nonEmptyObj(announcement)) {
+    if (!nonEmptyObj(announcement)) {
       Logger(`[TSUDPDiscovery handleAnnouncement] Error: bad announcement ${announcement}`);
 
       return false;
@@ -257,7 +257,7 @@ export class TSUDPDiscovery implements ITSUDPDiscovery {
   ): boolean {
     Logger(`[TSUDPDiscovery addNewService] -Name ${name} Starting`);
 
-    if (!isLibrary.nonEmptyStr(name)) {
+    if (!nonEmptyStr(name)) {
       Logger(`[TSUDPDiscovery addNewService] -Name ${name} Error: invalid name`);
 
       return false;
@@ -301,17 +301,17 @@ export class TSUDPDiscovery implements ITSUDPDiscovery {
    * @private
    */
   sendAnnounce(data: IServiceObject): boolean {
-    if (!isLibrary.nonEmptyObj(data)) {
+    if (!nonEmptyObj(data)) {
       Logger(`[TSUDPDiscovery sendAnnounce] Error: invalid data - ${data}`);
 
       return false;
     }
 
-    const copy = <IServiceAnnouncement>objToJson.copyObj(data);
+    const copy = <IServiceAnnouncement>copyObj(data);
     copy.lastAnnTm = undefined;
     copy.intervalId = undefined;
 
-    const str = objToJson.jsonStringify(copy);
+    const str = jsonStringify(copy);
 
     if (!str) {
       Logger(`[TSUDPDiscovery sendAnnounce] Error: failed on stringify data: ${data}`);
@@ -343,7 +343,7 @@ export class TSUDPDiscovery implements ITSUDPDiscovery {
     interval: number,
     available: boolean = true
   ): boolean {
-    if (!isLibrary.nonEmptyStr(name)) {
+    if (!nonEmptyStr(name)) {
       Logger(`[TSUDPDiscovery announce] -Name ${name} Error: invalid name`);
 
       return false;
@@ -359,7 +359,7 @@ export class TSUDPDiscovery implements ITSUDPDiscovery {
     const localInterval = interval > 0 ? interval : EDefaultOptions.DEFAULT_INTERVAL;
 
     // make a copy of the userData object
-    const userDataCopy = <object>objToJson.copyObj(userData);
+    const userDataCopy = <object>copyObj(userData);
 
     if (!userDataCopy) {
       return false;
@@ -382,13 +382,13 @@ export class TSUDPDiscovery implements ITSUDPDiscovery {
     Logger(`[TSUDPDiscovery pause] -Name ${name} Starting`);
 
     // we have to have a name that is string and not empty
-    if (!isLibrary.nonEmptyStr(name)) {
+    if (!nonEmptyStr(name)) {
       Logger(`[TSUDPDiscovery pause] -Name ${name} Error: invalid name`);
 
       return false;
     }
 
-    if (!isLibrary.nonEmptyObj(this.services)) {
+    if (!nonEmptyObj(this.services)) {
       Logger(`[TSUDPDiscovery pause] -Name ${name} Error: There are no services to stop`);
 
       return false;
@@ -424,7 +424,7 @@ export class TSUDPDiscovery implements ITSUDPDiscovery {
    */
   resume(name: string, interval: number): boolean {
     // we need a name that is a string which is not empty
-    if (!isLibrary.nonEmptyStr(name)) {
+    if (!nonEmptyStr(name)) {
       Logger(`[TSUDPDiscovery resume] -Name ${name} Error: invalid name`);
 
       return false;
@@ -476,7 +476,7 @@ export class TSUDPDiscovery implements ITSUDPDiscovery {
     available: boolean = true
   ): boolean {
     // we have to have a name that is string and not empty
-    if (!isLibrary.nonEmptyStr(name)) {
+    if (!nonEmptyStr(name)) {
       Logger(`[TSUDPDiscovery update] -Name ${name} Error: invalid name`);
 
       return false;
@@ -491,7 +491,7 @@ export class TSUDPDiscovery implements ITSUDPDiscovery {
     const localInterval = interval > 0 ? interval : EDefaultOptions.DEFAULT_INTERVAL;
 
     // make a copy of the userData object
-    const userDataCopy = objToJson.copyObj(userData);
+    const userDataCopy = copyObj(userData);
 
     if (!userDataCopy) {
       return false;
@@ -509,7 +509,7 @@ export class TSUDPDiscovery implements ITSUDPDiscovery {
    */
   getData(name: string): object | boolean {
     // handle conditions for which there is no answer
-    if (!isLibrary.nonEmptyStr(name)) {
+    if (!nonEmptyStr(name)) {
       return false;
     }
 
@@ -528,7 +528,7 @@ export class TSUDPDiscovery implements ITSUDPDiscovery {
    * @return {Boolean} true, if successful false otherwise.
    */
   sendEvent(eventName: string, userData: { [key: string]: any }): boolean {
-    if (!isLibrary.nonEmptyStr(eventName)) {
+    if (!nonEmptyStr(eventName)) {
       Logger(`[TSUDPDiscovery update] -Event Name ${eventName} Error: invalid event name`);
 
       return false;
@@ -552,9 +552,9 @@ export class TSUDPDiscovery implements ITSUDPDiscovery {
     data?: object
   ): boolean {
     if (
-      !isLibrary.nonEmptyStr(destinationServices) &&
-      !isLibrary.nonEmptyArray(destinationServices) &&
-      !isLibrary.isFunction(destinationServices)
+      !nonEmptyStr(destinationServices) &&
+      !nonEmptyArray(destinationServices) &&
+      !isFunction(destinationServices)
     ) {
       Logger(
         `[TSUDPDiscovery sendEventTo] -Event Name ${eventName} Error: invalid destination service`
@@ -563,19 +563,19 @@ export class TSUDPDiscovery implements ITSUDPDiscovery {
       return false;
     }
 
-    if (!isLibrary.nonEmptyStr(eventName)) {
+    if (!nonEmptyStr(eventName)) {
       Logger(`[TSUDPDiscovery sendEventTo] -Event Name ${eventName} Error: invalid event name`);
 
       return false;
     }
 
     // handle the case where dest is a service name
-    if (isLibrary.nonEmptyStr(destinationServices)) {
+    if (nonEmptyStr(destinationServices)) {
       this.sendEventToService(destinationServices as string, eventName, data);
-    } else if (isLibrary.nonEmptyArray(destinationServices)) {
+    } else if (nonEmptyArray(destinationServices)) {
       const queryArray = destinationServices as Array<string>;
       queryArray.forEach(query => this.sendEventToService(query, eventName, data));
-    } else if (isLibrary.isFunction(destinationServices)) {
+    } else if (isFunction(destinationServices)) {
       const queryFunc = destinationServices as Function;
       Object.keys(this.services).forEach(name => {
         if (queryFunc(this.services[name]) === true) {
@@ -596,7 +596,7 @@ export class TSUDPDiscovery implements ITSUDPDiscovery {
    * @private
    */
   sendEventToService(name: string, eventName: string, data?: object): boolean {
-    if (!isLibrary.nonEmptyStr(name)) {
+    if (!nonEmptyStr(name)) {
       Logger(`[TSUDPDiscovery sendEventToService] -Name ${name} Error: invalid name`);
 
       return false;
@@ -608,7 +608,7 @@ export class TSUDPDiscovery implements ITSUDPDiscovery {
       return false;
     }
 
-    if (!isLibrary.nonEmptyStr(eventName)) {
+    if (!nonEmptyStr(eventName)) {
       Logger(`[TSUDPDiscovery sendEventToService] -Name ${name} Error: invalid event name`);
 
       return false;
@@ -632,7 +632,7 @@ export class TSUDPDiscovery implements ITSUDPDiscovery {
    * @private
    */
   sendEventToAddress(address: string, eventName: string, data?: object): boolean {
-    if (!isLibrary.nonEmptyStr(eventName)) {
+    if (!nonEmptyStr(eventName)) {
       Logger(
         `[TSUDPDiscovery sendEventToAddress] -Event Name ${eventName} Error: invalid event name`
       );
@@ -640,7 +640,7 @@ export class TSUDPDiscovery implements ITSUDPDiscovery {
       return false;
     }
 
-    if (!isLibrary.nonEmptyStr(address)) {
+    if (!nonEmptyStr(address)) {
       Logger(`[TSUDPDiscovery sendEventToAddress] -Event Name ${eventName} Error: invalid address`);
 
       return false;
@@ -652,7 +652,7 @@ export class TSUDPDiscovery implements ITSUDPDiscovery {
     };
 
     // convert data to JSON string
-    const str = objToJson.jsonStringify(obj);
+    const str = jsonStringify(obj);
 
     if (!str) {
       Logger(
